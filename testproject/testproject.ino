@@ -83,7 +83,7 @@ void loop() {
     }
   }
   //-----------------------------------------------------------------------------
-  if (ms_from_start - ms_previous_read_Dot >  1000) {
+  if (ms_from_start - ms_previous_read_Dot >  250) {
     ms_previous_read_Dot = ms_from_start;
     if (Dot_state == 0) {
       Dot_state = 1; 
@@ -91,19 +91,40 @@ void loop() {
     }
     else if(Dot_state == 1) {
       Dot_state = 2;
-      for (byte i = 0; i < 4; i++) SendPackets(i + 1, ~0xff);
-      for (byte i = 4; i < 8; i++) SendPackets(i + 1, 0xff);
+      byte tmp=0xff;
+      for (byte i = 0; i < 8; i++) {
+        SendPackets(i + 1, ~(tmp<<i));
+      }
     }
     else if(Dot_state == 2) {
       Dot_state = 3;
+      for (byte i = 0; i < 4; i++) SendPackets(i + 1, ~0xff);
+      for (byte i = 4; i < 8; i++) SendPackets(i + 1, 0xff);
+    }
+    else if(Dot_state == 3) {
+      Dot_state = 4;
+      byte tmp=0xff;
+      for (byte i = 0; i < 8; i++) SendPackets(i + 1, ~(tmp>>i));
+    }
+    else if(Dot_state == 4) {
+      Dot_state = 5;
       for (byte i = 0; i < 8; i++) SendPackets(i + 1, 0xf0);
     }
-    else {
-      Dot_state = 0;
+    else if(Dot_state == 5) {
+      Dot_state = 6;
+      byte tmp=0xff;
+      for (byte i = 0; i < 8; i++) SendPackets(i + 1, tmp<<i);
+    }
+    else if(Dot_state == 6)  {
+      Dot_state = 7;
       for (byte i = 0; i < 4; i++) SendPackets(i + 1, 0xff);
       for (byte i = 4; i < 8; i++) SendPackets(i + 1, ~0xff);
     }
-    
+    else {
+      Dot_state = 0;
+      byte tmp=0xff;
+      for (byte i = 0; i < 8; i++) SendPackets(i + 1, tmp>>i);
+    }
   }
   //-----------------------------------------------------------------------------
 }
